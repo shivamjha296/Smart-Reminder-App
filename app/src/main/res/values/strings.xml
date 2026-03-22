@@ -9,4 +9,5 @@
     <string name="btn_add_reminder">Add Reminder</string>
     <string name="btn_view_reminders">View Reminders</string>
     <string name="btn_pick_time">Pick Time</string>
+    <string name="btn_delete_reminder">Delete</string>
 </resources>

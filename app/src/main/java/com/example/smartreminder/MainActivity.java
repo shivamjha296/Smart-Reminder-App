@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (category.isEmpty()) {
-            etCategory.setError("Category is required for Roll No 22");
+            etCategory.setError(AssignmentConfig.getExtraFieldColumn() + " is required");
             return;
         }
 
@@ -164,11 +164,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void scheduleReminderWorker() {
-        PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(ReminderWorker.class, 15, TimeUnit.MINUTES)
+        int intervalMinutes = AssignmentConfig.getWorkManagerIntervalMinutes();
+        PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(ReminderWorker.class, intervalMinutes, TimeUnit.MINUTES)
                 .build();
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-                "reminder_check_worker_22",
+                AssignmentConfig.getWorkerUniqueName(),
                 ExistingPeriodicWorkPolicy.KEEP,
                 request
         );

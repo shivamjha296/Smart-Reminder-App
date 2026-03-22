@@ -16,7 +16,7 @@ import androidx.work.WorkerParameters;
 
 public class ReminderWorker extends Worker {
 
-    private static final String CHANNEL_ID = "reminder_channel_22";
+    private static final String CHANNEL_ID = AssignmentConfig.getNotificationChannelId();
 
     public ReminderWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -26,11 +26,12 @@ public class ReminderWorker extends Worker {
     @Override
     public Result doWork() {
         ReminderDatabaseHelper dbHelper = new ReminderDatabaseHelper(getApplicationContext());
-        int reminderCount = dbHelper.getReminderCount();
+        int intervalMinutes = AssignmentConfig.getWorkManagerIntervalMinutes();
+        int dueReminderCount = dbHelper.getDueReminderCount(intervalMinutes);
 
-        if (reminderCount > 0) {
+        if (dueReminderCount > 0) {
             createChannelIfNeeded();
-            showNotification(reminderCount);
+            showNotification(dueReminderCount);
         }
         return Result.success();
     }
@@ -52,12 +53,12 @@ public class ReminderWorker extends Worker {
     }
 
     private void showNotification(int reminderCount) {
-        String assignmentMessage = "Reminder: Check your scheduled task";
+        String assignmentMessage = AssignmentConfig.getNotificationMessage();
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentTitle("Smart Reminder App")
-                .setContentText(assignmentMessage + " (Total reminders: " + reminderCount + ")")
+                .setContentText(assignmentMessage + " (Due reminders: " + reminderCount + ")")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true);
 

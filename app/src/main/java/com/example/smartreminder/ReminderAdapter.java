@@ -3,6 +3,7 @@ package com.example.smartreminder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -13,9 +14,15 @@ import java.util.List;
 public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ReminderViewHolder> {
 
     private final List<Reminder> reminders;
+    private final OnDeleteClickListener deleteClickListener;
 
-    public ReminderAdapter(List<Reminder> reminders) {
+    public interface OnDeleteClickListener {
+        void onDeleteClicked(Reminder reminder, int position);
+    }
+
+    public ReminderAdapter(List<Reminder> reminders, OnDeleteClickListener deleteClickListener) {
         this.reminders = reminders;
+        this.deleteClickListener = deleteClickListener;
     }
 
     @NonNull
@@ -33,11 +40,20 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         holder.tvTime.setText("Time: " + reminder.getTime());
         holder.tvLocation.setText("Location: " + reminder.getLocation());
         holder.tvCategory.setText("Category: " + reminder.getCategory());
+        holder.btnDelete.setOnClickListener(v -> deleteClickListener.onDeleteClicked(reminder, holder.getBindingAdapterPosition()));
     }
 
     @Override
     public int getItemCount() {
         return reminders.size();
+    }
+
+    public void removeReminderAt(int position) {
+        if (position < 0 || position >= reminders.size()) {
+            return;
+        }
+        reminders.remove(position);
+        notifyItemRemoved(position);
     }
 
     static class ReminderViewHolder extends RecyclerView.ViewHolder {
@@ -46,6 +62,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         TextView tvTime;
         TextView tvLocation;
         TextView tvCategory;
+        Button btnDelete;
 
         ReminderViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -54,6 +71,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
             tvTime = itemView.findViewById(R.id.tvItemTime);
             tvLocation = itemView.findViewById(R.id.tvItemLocation);
             tvCategory = itemView.findViewById(R.id.tvItemCategory);
+            btnDelete = itemView.findViewById(R.id.btnDeleteReminder);
         }
     }
 }
