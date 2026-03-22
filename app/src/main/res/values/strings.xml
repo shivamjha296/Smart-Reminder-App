@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Smart Reminder 22</string>
+    <string name="title_hint">Reminder Title</string>
+    <string name="description_hint">Reminder Description</string>
+    <string name="time_hint">Reminder Time</string>
+    <string name="category_hint">Category</string>
+    <string name="location_placeholder">Location: Not set</string>
+    <string name="btn_get_location">Get Current Location (GPS)</string>
+    <string name="btn_add_reminder">Add Reminder</string>
+    <string name="btn_view_reminders">View Reminders</string>
+    <string name="btn_pick_time">Pick Time</string>
+</resources>
