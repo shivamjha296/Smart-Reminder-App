@@ -37,9 +37,3 @@ dependencies {
     implementation 'androidx.work:work-runtime:2.9.0'
 }
 
-if (tasks.findByName('prepareKotlinBuildScriptModel') == null) {
-    tasks.register('prepareKotlinBuildScriptModel') {
-        group = 'ide'
-        description = 'Compatibility task for IDE Kotlin model import in Java-only app module.'
-    }
-}
