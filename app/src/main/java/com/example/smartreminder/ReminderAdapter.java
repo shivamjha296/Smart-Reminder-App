@@ -6,6 +6,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -37,9 +39,19 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         Reminder reminder = reminders.get(position);
         holder.tvTitle.setText(reminder.getTitle());
         holder.tvDescription.setText("Description: " + reminder.getDescription());
-        holder.tvTime.setText("Time: " + reminder.getTime());
+        holder.tvTime.setText("Date & Time: " + reminder.getDate() + " " + reminder.getTime());
         holder.tvLocation.setText("Location: " + reminder.getLocation());
         holder.tvCategory.setText("Category: " + reminder.getCategory());
+        holder.tvAlertType.setText("Alert: " + reminder.getAlertType());
+
+        boolean expired = reminder.isExpired();
+        holder.tvStatus.setText(expired ? "Expired" : "Upcoming");
+        int statusColor = ContextCompat.getColor(
+            holder.itemView.getContext(),
+            expired ? R.color.status_expired : R.color.status_upcoming
+        );
+        holder.tvStatus.setTextColor(statusColor);
+
         holder.btnDelete.setOnClickListener(v -> deleteClickListener.onDeleteClicked(reminder, holder.getBindingAdapterPosition()));
     }
 
@@ -62,6 +74,8 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         TextView tvTime;
         TextView tvLocation;
         TextView tvCategory;
+        TextView tvAlertType;
+        TextView tvStatus;
         Button btnDelete;
 
         ReminderViewHolder(@NonNull View itemView) {
@@ -71,6 +85,8 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
             tvTime = itemView.findViewById(R.id.tvItemTime);
             tvLocation = itemView.findViewById(R.id.tvItemLocation);
             tvCategory = itemView.findViewById(R.id.tvItemCategory);
+            tvAlertType = itemView.findViewById(R.id.tvItemAlertType);
+            tvStatus = itemView.findViewById(R.id.tvItemStatus);
             btnDelete = itemView.findViewById(R.id.btnDeleteReminder);
         }
     }

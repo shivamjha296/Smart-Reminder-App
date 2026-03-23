@@ -1,6 +1,21 @@
 <resources>
-    <color name="blue_500">#1565C0</color>
-    <color name="blue_700">#0D47A1</color>
+    <color name="blue_500">#0A6EBD</color>
+    <color name="blue_700">#074173</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+
+    <color name="screen_bg">#F4F7FB</color>
+    <color name="card_bg">#FFFFFF</color>
+    <color name="text_primary">#13243A</color>
+    <color name="text_secondary">#4F617A</color>
+
+    <color name="button_primary">#0D5EA6</color>
+    <color name="button_secondary">#1F7A8C</color>
+    <color name="button_accent">#2A9D8F</color>
+    <color name="button_neutral">#6C757D</color>
+    <color name="button_view">#2D6A4F</color>
+    <color name="button_danger">#C44536</color>
+
+    <color name="status_expired">#B3261E</color>
+    <color name="status_upcoming">#1B7F45</color>
 </resources>

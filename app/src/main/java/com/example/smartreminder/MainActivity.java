@@ -8,9 +8,11 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText etDescription;
     private EditText etTime;
     private EditText etCategory;
+    private RadioGroup rgAlertPreference;
     private TextView tvLocation;
     private ReminderDatabaseHelper dbHelper;
 
@@ -59,14 +62,14 @@ public class MainActivity extends AppCompatActivity {
         etDescription = findViewById(R.id.etDescription);
         etTime = findViewById(R.id.etTime);
         etCategory = findViewById(R.id.etCategory);
+        rgAlertPreference = findViewById(R.id.rgAlertPreference);
         tvLocation = findViewById(R.id.tvLocation);
 
-        Button btnPickTime = findViewById(R.id.btnPickTime);
         Button btnGetLocation = findViewById(R.id.btnGetLocation);
         Button btnAddReminder = findViewById(R.id.btnAddReminder);
         Button btnViewReminders = findViewById(R.id.btnViewReminders);
 
-        btnPickTime.setOnClickListener(v -> showTimePicker());
+        etTime.setOnClickListener(v -> showDateThenTimePicker());
         btnGetLocation.setOnClickListener(v -> requestLocationPermissionAndFetch());
         btnAddReminder.setOnClickListener(v -> addReminder());
         btnViewReminders.setOnClickListener(v -> startActivity(new Intent(this, ViewRemindersActivity.class)));
@@ -75,7 +78,33 @@ public class MainActivity extends AppCompatActivity {
         scheduleReminderWorker();
     }
 
-    private void showTimePicker() {
+    private void showDateThenTimePicker() {
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, selectedYear, selectedMonth, selectedDay) -> {
+                    String formattedDate = String.format(
+                            Locale.getDefault(),
+                            "%04d-%02d-%02d",
+                            selectedYear,
+                            selectedMonth + 1,
+                            selectedDay
+                    );
+                    showTimePicker(formattedDate);
+                },
+                year,
+                month,
+                day
+        );
+
+        datePickerDialog.show();
+    }
+
+    private void showTimePicker(String selectedDate) {
         Calendar calendar = Calendar.getInstance();
         int currentHour = calendar.get(Calendar.HOUR_OF_DAY);
         int currentMinute = calendar.get(Calendar.MINUTE);
@@ -84,8 +113,9 @@ public class MainActivity extends AppCompatActivity {
                 this,
                 (view, hourOfDay, minute) -> {
                     String formattedTime = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute);
-                    etTime.setText(formattedTime);
-                    Toast.makeText(this, "Time set: " + formattedTime, Toast.LENGTH_SHORT).show();
+                    String displayDateTime = selectedDate + " " + formattedTime;
+                    etTime.setText(displayDateTime);
+                    Toast.makeText(this, "Reminder set for " + displayDateTime, Toast.LENGTH_SHORT).show();
                 },
                 currentHour,
                 currentMinute,
@@ -98,31 +128,44 @@ public class MainActivity extends AppCompatActivity {
     private void addReminder() {
         String title = etTitle.getText().toString().trim();
         String description = etDescription.getText().toString().trim();
-        String time = etTime.getText().toString().trim();
+        String dateTime = etTime.getText().toString().trim();
         String category = etCategory.getText().toString().trim();
+        String alertType = rgAlertPreference.getCheckedRadioButtonId() == R.id.rbRhythm
+            ? "RHYTHM"
+            : "NOTIFICATION";
 
         if (title.isEmpty()) {
             etTitle.setError("Title is required");
             return;
         }
 
-        if (time.isEmpty()) {
-            etTime.setError("Time is required");
+        if (dateTime.isEmpty()) {
+            etTime.setError("Date and time are required");
             return;
         }
+
+        String[] dateTimeParts = dateTime.split(" ");
+        if (dateTimeParts.length != 2) {
+            etTime.setError("Use picker to select date and time");
+            return;
+        }
+
+        String date = dateTimeParts[0];
+        String time = dateTimeParts[1];
 
         if (category.isEmpty()) {
             etCategory.setError(AssignmentConfig.getExtraFieldColumn() + " is required");
             return;
         }
 
-        long rowId = dbHelper.insertReminder(title, description, time, currentLocationText, category);
+        long rowId = dbHelper.insertReminder(title, description, date, time, currentLocationText, category, alertType);
         if (rowId > 0) {
             Toast.makeText(this, "Reminder added", Toast.LENGTH_SHORT).show();
             etTitle.setText("");
             etDescription.setText("");
             etTime.setText("");
             etCategory.setText("");
+            rgAlertPreference.check(R.id.rbNotification);
             currentLocationText = "Not set";
             tvLocation.setText(getString(R.string.location_placeholder));
         } else {

@@ -5,7 +5,12 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -13,6 +18,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
+
+import java.util.List;
 
 public class ReminderWorker extends Worker {
 
@@ -26,13 +33,26 @@ public class ReminderWorker extends Worker {
     @Override
     public Result doWork() {
         ReminderDatabaseHelper dbHelper = new ReminderDatabaseHelper(getApplicationContext());
-        int intervalMinutes = AssignmentConfig.getWorkManagerIntervalMinutes();
-        int dueReminderCount = dbHelper.getDueReminderCount(intervalMinutes);
+        List<Reminder> dueReminders = dbHelper.getDueReminders(System.currentTimeMillis());
 
-        if (dueReminderCount > 0) {
-            createChannelIfNeeded();
-            showNotification(dueReminderCount);
+        if (dueReminders.isEmpty()) {
+            return Result.success();
         }
+
+        createChannelIfNeeded();
+        for (Reminder reminder : dueReminders) {
+            boolean handled;
+            if ("RHYTHM".equalsIgnoreCase(reminder.getAlertType())) {
+                handled = playRhythm();
+            } else {
+                handled = showNotification(reminder);
+            }
+
+            if (handled) {
+                dbHelper.markReminderAsNotified(reminder.getId());
+            }
+        }
+
         return Result.success();
     }
 
@@ -52,20 +72,46 @@ public class ReminderWorker extends Worker {
         }
     }
 
-    private void showNotification(int reminderCount) {
+        private boolean showNotification(Reminder reminder) {
         String assignmentMessage = AssignmentConfig.getNotificationMessage();
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle("Smart Reminder App")
-                .setContentText(assignmentMessage + " (Due reminders: " + reminderCount + ")")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentTitle("Reminder: " + reminder.getTitle())
+            .setContentText(assignmentMessage + " at " + reminder.getTime() + " on " + reminder.getDate())
+            .setStyle(new NotificationCompat.BigTextStyle()
+                .bigText(reminder.getDescription() == null || reminder.getDescription().isEmpty()
+                    ? assignmentMessage
+                    : reminder.getDescription()))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true);
 
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            return;
+            return false;
         }
-        NotificationManagerCompat.from(getApplicationContext()).notify(2201, builder.build());
+        NotificationManagerCompat.from(getApplicationContext()).notify(2200 + reminder.getId(), builder.build());
+        return true;
+    }
+
+    private boolean playRhythm() {
+        Uri alarmTone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+        if (alarmTone == null) {
+            alarmTone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        }
+
+        Ringtone ringtone = RingtoneManager.getRingtone(getApplicationContext(), alarmTone);
+        if (ringtone == null) {
+            return false;
+        }
+
+        ringtone.play();
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(() -> {
+            if (ringtone.isPlaying()) {
+                ringtone.stop();
+            }
+        }, 8000);
+        return true;
     }
 }
