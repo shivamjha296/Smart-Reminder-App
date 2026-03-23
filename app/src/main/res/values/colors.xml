@@ -18,4 +18,6 @@
 
     <color name="status_expired">#B3261E</color>
     <color name="status_upcoming">#1B7F45</color>
+
+    <color name="field_stroke">#4D6A8A</color>
 </resources>
