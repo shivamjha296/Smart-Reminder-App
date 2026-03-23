@@ -2,14 +2,17 @@ package com.example.smartreminder;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.provider.Settings;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
@@ -21,13 +24,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
 
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -75,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
         btnViewReminders.setOnClickListener(v -> startActivity(new Intent(this, ViewRemindersActivity.class)));
 
         requestNotificationPermissionIfNeeded();
+        requestExactAlarmPermissionIfNeeded();
+        ReminderAlarmScheduler.rescheduleFutureReminders(this);
         scheduleReminderWorker();
     }
 
@@ -160,6 +161,8 @@ public class MainActivity extends AppCompatActivity {
 
         long rowId = dbHelper.insertReminder(title, description, date, time, currentLocationText, category, alertType);
         if (rowId > 0) {
+            Reminder reminder = new Reminder((int) rowId, title, description, date, time, currentLocationText, category, alertType);
+            ReminderAlarmScheduler.scheduleReminder(this, reminder);
             Toast.makeText(this, "Reminder added", Toast.LENGTH_SHORT).show();
             etTitle.setText("");
             etDescription.setText("");
@@ -207,15 +210,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void scheduleReminderWorker() {
-        int intervalMinutes = AssignmentConfig.getWorkManagerIntervalMinutes();
-        PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(ReminderWorker.class, intervalMinutes, TimeUnit.MINUTES)
-                .build();
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-                AssignmentConfig.getWorkerUniqueName(),
-                ExistingPeriodicWorkPolicy.KEEP,
-                request
-        );
+        ReminderBackgroundScheduler.schedule(this);
     }
 
     private void requestNotificationPermissionIfNeeded() {
@@ -224,6 +219,19 @@ public class MainActivity extends AppCompatActivity {
                     != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 2001);
             }
+        }
+    }
+
+    private void requestExactAlarmPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return;
+        }
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        if (alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
+            Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
         }
     }
 

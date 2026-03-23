@@ -146,6 +146,41 @@ public class ReminderDatabaseHelper extends SQLiteOpenHelper {
         return dueReminders;
     }
 
+    public List<Reminder> getFutureUnnotifiedReminders(long nowMillis) {
+        List<Reminder> reminders = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(
+                TABLE_NAME,
+                null,
+                COL_IS_NOTIFIED + " = 0",
+                null,
+                null,
+                null,
+                COL_ID + " ASC"
+        );
+
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndexOrThrow(COL_ID));
+                String title = cursor.getString(cursor.getColumnIndexOrThrow(COL_TITLE));
+                String description = cursor.getString(cursor.getColumnIndexOrThrow(COL_DESCRIPTION));
+                String date = cursor.getString(cursor.getColumnIndexOrThrow(COL_DATE));
+                String timeText = cursor.getString(cursor.getColumnIndexOrThrow(COL_TIME));
+                String location = cursor.getString(cursor.getColumnIndexOrThrow(COL_LOCATION));
+                String category = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXTRA_FIELD));
+                String alertType = cursor.getString(cursor.getColumnIndexOrThrow(COL_ALERT_TYPE));
+
+                Long scheduledAt = parseDateTimeToMillis(date, timeText);
+                if (scheduledAt != null && scheduledAt > nowMillis) {
+                    reminders.add(new Reminder(id, title, description, date, timeText, location, category, alertType));
+                }
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        return reminders;
+    }
+
     public void markReminderAsNotified(int reminderId) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();

@@ -28,6 +28,10 @@ public final class AssignmentConfig {
     }
 
     public static int getNotificationIntervalMinutes() {
+        if (ROLL_NO == 22) {
+            return 5;
+        }
+
         int mod = ROLL_NO % 4;
         if (mod == 0) {
             return 5;

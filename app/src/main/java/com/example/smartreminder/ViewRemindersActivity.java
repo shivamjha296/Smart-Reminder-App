@@ -41,6 +41,7 @@ public class ViewRemindersActivity extends AppCompatActivity {
                 .setPositiveButton("Delete", (dialog, which) -> {
                     int deletedRows = dbHelper.deleteReminderById(reminder.getId());
                     if (deletedRows > 0) {
+                        ReminderAlarmScheduler.cancelReminder(this, reminder.getId());
                         adapter.removeReminderAt(position);
                         Toast.makeText(this, "Reminder deleted", Toast.LENGTH_SHORT).show();
                     } else {
