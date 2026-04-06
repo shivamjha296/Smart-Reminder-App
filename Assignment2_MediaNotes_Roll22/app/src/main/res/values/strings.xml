@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">Media Notes 22</string>
+    <string name="note_title_hint">Note Title</string>
+    <string name="note_description_hint">Note Description</string>
+    <string name="extra_field_hint">Reminder Flag</string>
+    <string name="media_not_selected">Media: Not selected</string>
+    <string name="btn_capture_or_select">Capture Image / Select Image</string>
+    <string name="btn_save_note">Save Note</string>
+    <string name="btn_view_notes">View Notes</string>
+    <string name="screen_title">Media Notes</string>
+    <string name="screen_subtitle">Save notes with media and review quickly</string>
+    <string name="form_title">Create Note</string>
+    <string name="notes_list_title">Saved Notes</string>
+    <string name="btn_edit_note">Edit</string>
+    <string name="btn_delete_note">Delete</string>
+    <string name="edit_note_title">Edit Note</string>
+    <string name="delete_note_title">Delete Note</string>
+    <string name="delete_note_message">Delete this note?</string>
+    <string name="action_update">Update</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="note_detail_title">Note Detail</string>
+    <string name="note_not_found">Note not found</string>
+    <string name="label_title">Title:</string>
+    <string name="label_description">Description:</string>
+    <string name="label_date">Date:</string>
+    <string name="label_media">Media:</string>
+    <string name="label_extra_field">Reminder Flag:</string>
+    <string name="detail_media_hint">Tap image to open full-screen preview</string>
+    <string name="edit_note_screen_title">Edit Note</string>
+    <string name="edit_note_screen_subtitle">Update text fields and replace attached media</string>
+    <string name="btn_change_media">Change Image / Video</string>
+    <string name="btn_update_note">Update Note</string>
+    <string name="edit_media_preview_hint">Current/selected media</string>
+</resources>
